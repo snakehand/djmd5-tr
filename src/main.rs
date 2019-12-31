@@ -9,6 +9,11 @@ use std::error::Error;
 use std::fs::File;
 use std::io::prelude::*;
 
+// Author: Frank A. Stevenson
+// Copyright 2019
+// See attached MIT & APACHE licence files for terms of use
+
+// Struct that allows "Contact Manager" contacts CVS files to be deserialised with serde
 #[derive(Debug, Deserialize)]
 struct CmContact {
     dmr_id: u32,       // "2429135"
@@ -22,6 +27,8 @@ struct CmContact {
     _ignore5: String,  // ""
 }
 
+// Struct that allows "Contact Manager" channel CVS files to be deserialised with serde 
+// Most fields are not named / identified yet, only the most important ones have been.
 #[derive(Debug, Deserialize)]
 struct CmChannel {
     name: String,      // "433.400 FMN"
@@ -68,6 +75,7 @@ struct CmChannel {
     slot: i32,         // "2"
 }
 
+// Read a "Contact Manager" contacts file
 fn read_contacts(filename: &str) -> Result<Vec<CmContact>, Box<dyn Error>> {
     let file = File::open(filename)?;
     let mut rdr = csv::Reader::from_reader(file);
@@ -90,10 +98,12 @@ fn read_contacts(filename: &str) -> Result<Vec<CmContact>, Box<dyn Error>> {
     Ok(contacts)
 }
 
+// Double quote a vector if str
 fn quote(ins: &[&str]) -> Vec<String> {
     ins.iter().map(|s| format!("\"{}\"", s)).collect()
 }
 
+// Write contacts in a format that is readable by DJ-MD% CSP utility
 fn write_contacts(filename: &str, contacts: &[CmContact]) -> Result<(), Box<dyn Error>> {
     let mut file = File::create(filename)?;
     let fields = vec![
@@ -135,6 +145,7 @@ fn write_contacts(filename: &str, contacts: &[CmContact]) -> Result<(), Box<dyn 
     Ok(())
 }
 
+// Read a "Contact Manager" channel file
 fn read_channels(filename: &str) -> Result<Vec<CmChannel>, Box<dyn Error>> {
     let file = File::open(filename)?;
     let mut rdr = csv::Reader::from_reader(file);
@@ -198,6 +209,9 @@ fn read_channels(filename: &str) -> Result<Vec<CmChannel>, Box<dyn Error>> {
     Ok(channels)
 }
 
+// Write channels in a format that is readable by DJ-MD% CSP utility
+// Generate a group file if requestied, with 1 group pr DMR_ID
+// A sample zone file is created by joining roughly equally sized groups of DMR_IDS
 fn write_channels(
     filename: &str,
     channels: &[CmChannel],
@@ -401,6 +415,7 @@ fn write_channels(
     Ok(())
 }
 
+// Main (entry point) - parse args and perform requested operations
 fn main() {
     let matches = App::new("DJ-MD5 csv translator")
         .version("0.1")
